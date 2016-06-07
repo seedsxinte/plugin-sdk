@@ -37,12 +37,12 @@ jQuery.noConflict();
                 $row.find(".conditionformat-ctype_text").val(c["ctype_text"]["value"]);
                 $row.find(".conditionformat-cvalue_text").val(c["cvalue_text"]["value"]);
                 $row.find(".conditionformat-tfield_text").val(c["tfield_text"]["value"]);
-                $row.find(".conditionformat-tcolor_text").val(c["tcolor_text"]["value"]);
-                $row.find(".conditionformat-tbgcolor_text").val(c["tbgcolor_text"]["value"]);
+                $row.find(".conditionformat-tcolor").val(c["tcolor_text"]["value"]);
+                $row.find(".conditionformat-tbgcolor").val(c["tbgcolor_text"]["value"]);
                 $row.find(".conditionformat-tsize_text").val(c["tsize_text"]["value"]);
-                $row.find(".conditionformat-tcolor_text")[0].
+                $row.find(".conditionformat-tcolor")[0].
                   setAttribute("style", "color:" + c["tcolor_text"]["value"]);
-                $row.find(".conditionformat-tbgcolor_text")[0].
+                $row.find(".conditionformat-tbgcolor")[0].
                   setAttribute("style", "color:" + c["tbgcolor_text"]["value"]);
             }
             var dRows = getDateRows();
@@ -53,12 +53,12 @@ jQuery.noConflict();
                 $row.find(".conditionformat-ctype_date").val(c["ctype_date"]["value"]);
                 $row.find(".conditionformat-cvalue_date").val(c["cvalue_date"]["value"]);
                 $row.find(".conditionformat-tfield_date").val(c["tfield_date"]["value"]);
-                $row.find(".conditionformat-tcolor_date").val(c["tcolor_date"]["value"]);
-                $row.find(".conditionformat-tbgcolor_date").val(c["tbgcolor_date"]["value"]);
+                $row.find(".conditionformat-tcolor").val(c["tcolor_date"]["value"]);
+                $row.find(".conditionformat-tbgcolor").val(c["tbgcolor_date"]["value"]);
                 $row.find(".conditionformat-tsize_date").val(c["tsize_date"]["value"]);
-                $row.find(".conditionformat-tcolor_date")[0].
+                $row.find(".conditionformat-tcolor")[0].
                   setAttribute("style", "color:" + c["tcolor_date"]["value"]);
-                $row.find(".conditionformat-tbgcolor_date")[0].
+                $row.find(".conditionformat-tbgcolor")[0].
                   setAttribute("style", "color:" + c["tbgcolor_date"]["value"]);
             }
         }
@@ -135,7 +135,7 @@ jQuery.noConflict();
         }
         setDropdown();
     }
-    
+
     function copyRow($tr){
       var $copied = $tr.clone(true,true);
       //select値もコピー
@@ -344,8 +344,8 @@ jQuery.noConflict();
                   typeText: $el.find(".conditionformat-ctype_text").val(),
                   valueText: $el.find(".conditionformat-cvalue_text").val(),
                   targetFieldText: $el.find(".conditionformat-tfield_text").val(),
-                  targetColorText: $el.find(".conditionformat-tcolor_text").val(),
-                  targetBackgroundColorText: $el.find(".conditionformat-tbgcolor_text").val(),
+                  targetColorText: $el.find(".conditionformat-tcolor").val(),
+                  targetBackgroundColorText: $el.find(".conditionformat-tbgcolor").val(),
                   targetSizeText: $el.find(".conditionformat-tsize_text").val()
             });
         });
@@ -357,8 +357,8 @@ jQuery.noConflict();
                   typeDate: $el.find(".conditionformat-ctype_date").val(),
                   valueDate: $el.find(".conditionformat-cvalue_date").val(),
                   targetFieldDate: $el.find(".conditionformat-tfield_date").val(),
-                  targetColorDate: $el.find(".conditionformat-tcolor_date").val(),
-                  targetBackgroundColorDate: $el.find(".conditionformat-tbgcolor_date").val(),
+                  targetColorDate: $el.find(".conditionformat-tcolor").val(),
+                  targetBackgroundColorDate: $el.find(".conditionformat-tbgcolor").val(),
                   targetSizeDate: $el.find(".conditionformat-tsize_date").val()
             });
         });

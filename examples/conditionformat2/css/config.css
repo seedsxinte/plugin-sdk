@@ -1,10 +1,10 @@
-.conditionformat-cvalue, .conditionformat-cvalue-date,
-.conditionformat-color, .conditionformat-backgroundcolor, .conditionformat-clear-buttons {
+.conditionformat-cvalue_text, .conditionformat-cvalue_date,
+.conditionformat-tcolor, .conditionformat-tbgcolor, .conditionformat-clear-buttons {
     margin-right: 10px;
     margin-bottom: 8px;
 }
 
-.conditionformat-color, .conditionformat-backgroundcolor{
+.conditionformat-tcolor, .conditionformat-tbgcolor {
     width: 90px;
 }
 
@@ -17,21 +17,21 @@
     padding-right: 0px;
     width: 150px;
 }
-.conditionformat-cvalue {
+.conditionformat-cvalue_date, .conditionformat-cvalue_text {
     width: 230px;
 }
 
-.conditionformat-cvalue-date {
+.conditionformat-cvalue_date {
     padding-right: 0px;
     width: 60px;
 }
 
-.conditionformat-today {
+.conditionformat-today_date {
     width: 120px;
     color: #327fcb;
 }
 
-.conditionformat-day {
+.conditionformat-day_date {
     width: 50px;
     color: #327fcb;
 }
