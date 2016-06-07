@@ -1,6 +1,6 @@
 .conditionformat-cvalue_text, .conditionformat-cvalue_date,
 .conditionformat-tcolor, .conditionformat-tbgcolor, .conditionformat-clear-buttons,
-.conditionformat-required, .conditionformat-disabled, .conditionformat-hidden {
+.conditionformat-trequired, .conditionformat-tdisabled, .conditionformat-thidden {
     margin-right: 10px;
     margin-bottom: 8px;
 }
@@ -41,7 +41,7 @@
     cursor: pointer;
 }
 
-.conditionformat-required, .conditionformat-disabled, .conditionformat-hidden {
+.conditionformat-trequired, .conditionformat-tdisabled, .conditionformat-thidden {
     width: 52px;
     height: 52px;
     cursor: pointer;

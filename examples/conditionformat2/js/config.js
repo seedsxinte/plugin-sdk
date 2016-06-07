@@ -44,6 +44,9 @@ jQuery.noConflict();
                   setAttribute("style", "color:" + c["tcolor_text"]["value"]);
                 $row.find(".conditionformat-tbgcolor")[0].
                   setAttribute("style", "color:" + c["tbgcolor_text"]["value"]);
+                $row.find(".conditionformat-trequired").prop("checked", c["trequired"]["value"]);
+                $row.find(".conditionformat-tdisabled").prop("checked", c["tdisabled"]["value"]);
+                $row.find(".conditionformat-thidden").prop("checked", c["thidden"]["value"]);
             }
             var dRows = getDateRows();
             for (var i = 0; i < dRows.length; i++) {
@@ -60,6 +63,9 @@ jQuery.noConflict();
                   setAttribute("style", "color:" + c["tcolor_date"]["value"]);
                 $row.find(".conditionformat-tbgcolor")[0].
                   setAttribute("style", "color:" + c["tbgcolor_date"]["value"]);
+                $row.find(".conditionformat-trequired").prop("checked", c["trequired"]["value"]);
+                $row.find(".conditionformat-tdisabled").prop("checked", c["tdisabled"]["value"]);
+                $row.find(".conditionformat-thidden").prop("checked", c["thidden"]["value"]);
             }
         }
     }
@@ -163,10 +169,11 @@ jQuery.noConflict();
       $tr.find("select").val("");
       $tr.find(".conditionformat-cvalue").val("");
       $tr.find(".conditionformat-cvalue-date").val("0");
-      $tr.find(".conditionformat-color").val("#000000");
-      $tr.find(".conditionformat-color")[0].setAttribute("style", "color:" + "#000000");
-      $tr.find(".conditionformat-backgroundcolor").val("#");
-      $tr.find(".conditionformat-backgroundcolor")[0].setAttribute("style", "color:" + "#");
+      $tr.find(".conditionformat-tcolor").val("#000000");
+      $tr.find(".conditionformat-tcolor")[0].setAttribute("style", "color:" + "#000000");
+      $tr.find(".conditionformat-tbgcolor").val("#");
+      $tr.find(".conditionformat-tbgcolor")[0].setAttribute("style", "color:" + "#");
+      $tr.find("input[type=checkbox]").prop("checked", false);
     }
 
     function getTextRows(){
@@ -197,7 +204,10 @@ jQuery.noConflict();
               "tfield_text" : {"value": t.targetFieldText},
               "tcolor_text" : {"value": t.targetColorText},
               "tbgcolor_text" : {"value": t.targetBackgroundColorText},
-              "tsize_text" : {"value": t.targetSizeText}
+              "tsize_text" : {"value": t.targetSizeText},
+              "trequired" : {"value" : t.targetRequired},
+              "tdisabled" : {"value" : t.targetDisabled},
+              "thidden" : {"value" : t.targetHidden}
             });
         }
         var body_date = [];
@@ -211,7 +221,10 @@ jQuery.noConflict();
               "tfield_date" : {"value": d.targetFieldDate},
               "tcolor_date" : {"value": d.targetColorDate},
               "tbgcolor_date" : {"value": d.targetBackgroundColorDate},
-              "tsize_date" : {"value": d.targetSizeDate}
+              "tsize_date" : {"value": d.targetSizeDate},
+              "trequired" : {"value" : d.targetRequired},
+              "tdisabled" : {"value" : d.targetDisabled},
+              "thidden" : {"value" : d.targetHidden}
             });
         }
         var config = [];
@@ -346,7 +359,10 @@ jQuery.noConflict();
                   targetFieldText: $el.find(".conditionformat-tfield_text").val(),
                   targetColorText: $el.find(".conditionformat-tcolor").val(),
                   targetBackgroundColorText: $el.find(".conditionformat-tbgcolor").val(),
-                  targetSizeText: $el.find(".conditionformat-tsize_text").val()
+                  targetSizeText: $el.find(".conditionformat-tsize_text").val(),
+                  targetRequired: $el.find(".conditionformat-trequired").prop("checked"),
+                  targetDisabled: $el.find(".conditionformat-tdisabled").prop("checked"),
+                  targetHidden: $el.find(".conditionformat-thidden").prop("checked")
             });
         });
         getDateRows().each(function(i, e){
@@ -359,7 +375,10 @@ jQuery.noConflict();
                   targetFieldDate: $el.find(".conditionformat-tfield_date").val(),
                   targetColorDate: $el.find(".conditionformat-tcolor").val(),
                   targetBackgroundColorDate: $el.find(".conditionformat-tbgcolor").val(),
-                  targetSizeDate: $el.find(".conditionformat-tsize_date").val()
+                  targetSizeDate: $el.find(".conditionformat-tsize_date").val(),
+                  targetRequired: $el.find(".conditionformat-trequired").prop("checked"),
+                  targetDisabled: $el.find(".conditionformat-tdisabled").prop("checked"),
+                  targetHidden: $el.find(".conditionformat-thidden").prop("checked")
             });
         });
         return vals;
