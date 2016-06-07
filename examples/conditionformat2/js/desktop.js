@@ -19,7 +19,6 @@ jQuery.noConflict();
 
     var BODY_TEXT = JSON.parse(CONFIG["body_text"]);
     var BODY_DATE = JSON.parse(CONFIG["body_date"]);
-    var MAX_LINE = Number(CONFIG["line_number"]);
 
     function changeStyle(el, color, backgroundcolor, size) {
         if (el) {
@@ -34,6 +33,13 @@ jQuery.noConflict();
             } else {
                 el.style.fontSize = "14px";
             }
+        }
+    }
+
+    function changeDisplay(el, disabled, hidden) {
+        if (el) {
+            $(el).prop("disabled", disabled);
+            hidden ? $(el).hide() : $(el).show();
         }
     }
 
@@ -162,26 +168,32 @@ jQuery.noConflict();
     }
 
     //条件書式値取得
-    function getTextFormatValues(tm) {
+    function getTextFormatValues(tRow) {
         return {
-            fieldText: BODY_TEXT["cfield_text_" + tm]["value"],//書式条件フィールド
-            typeText: BODY_TEXT["ctype_text_" + tm]["value"],//条件式
-            valueText: BODY_TEXT["cvalue_text_" + tm]["value"],//条件値
-            targetFieldText: BODY_TEXT["tfield_text_" + tm]["value"],//書式編集対象フィールド
-            targetColorText: BODY_TEXT["tcolor_text_" + tm]["value"],//文字色
-            targetBackgroundColorText: BODY_TEXT["tbgcolor_text_" + tm]["value"],//背景色
-            targetSizeText: BODY_TEXT["tsize_text_" + tm]["value"]//サイズ
+            fieldText: tRow["cfield_text"]["value"],//書式条件フィールド
+            typeText: tRow["ctype_text"]["value"],//条件式
+            valueText: tRow["cvalue_text"]["value"],//条件値
+            targetFieldText: tRow["tfield_text"]["value"],//書式編集対象フィールド
+            targetColorText: tRow["tcolor_text"]["value"],//文字色
+            targetBackgroundColorText: tRow["tbgcolor_text"]["value"],//背景色
+            targetSizeText: tRow["tsize_text"]["value"],//サイズ
+            targetRequired: tRow["trequired"]["value"],//必須
+            targetDisabled: tRow["tdisabled"]["value"],//変更不可
+            targetHidden: tRow["thidden"]["value"]//非表示
         };
     }
-    function getDateFormatValues(dm) {
+    function getDateFormatValues(dRow) {
         return {
-            fieldDate: BODY_DATE["cfield_date_" + dm]["value"],//書式条件フィールド
-            typeDate: BODY_DATE["ctype_date_" + dm]["value"],//条件式
-            valueDate: BODY_DATE["cvalue_date_" + dm]["value"],//条件値
-            targetFieldDate: BODY_DATE["tfield_date_" + dm]["value"],//書式編集対象フィールド
-            targetColorDate: BODY_DATE["tcolor_date_" + dm]["value"],//文字色
-            targetBackgroundColorDate: BODY_DATE["tbgcolor_date_" + dm]["value"],//背景色
-            targetSizeDate: BODY_DATE["tsize_date_" + dm]["value"]//サイズ
+            fieldDate: dRow["cfield_date"]["value"],//書式条件フィールド
+            typeDate: dRow["ctype_date"]["value"],//条件式
+            valueDate: dRow["cvalue_date"]["value"],//条件値
+            targetFieldDate: dRow["tfield_date"]["value"],//書式編集対象フィールド
+            targetColorDate: dRow["tcolor_date"]["value"],//文字色
+            targetBackgroundColorDate: dRow["tbgcolor_date"]["value"],//背景色
+            targetSizeDate: dRow["tsize_date"]["value"],//サイズ
+            targetRequired: tRow["trequired"]["value"],//必須
+            targetDisabled: tRow["tdisabled"]["value"],//変更不可
+            targetHidden: tRow["thidden"]["value"]//非表示
         };
     }
 
@@ -190,15 +202,21 @@ jQuery.noConflict();
         var record = [];
         var t = [];
         var d = [];
-        for (var m = 1; m < MAX_LINE + 1; m++) {
-            if (BODY_TEXT["cfield_text_" + m]["value"] !== "") {
-                t.push(getTextFormatValues(m));
-            }
-            if (BODY_DATE["cfield_date_" + m]["value"] !== "") {
-                d.push(getDateFormatValues(m));
+
+        for(var i = 0; i < BODY_TEXT.length; i++){
+            var tRow = BODY_TEXT[i];
+            if (tRow["cfield_text"]["value"] !== "") {
+                t.push(getTextFormatValues(tRow));
             }
         }
-        //ステータスコードチェック
+        for(var i = 0; i < BODY_DATE.length; i++){
+            var dRow = BODY_DATE[i];
+            if (dRow["cfield_date"]["value"] !== "") {
+                d.push(getDateFormatValues(dRow));
+            }
+        }
+
+        //ステータスフィールドのフィールドコードを改めて取得し直す
         for (var st = 0; st < t.length; st++) {
             t[st].targetFieldText = changeStatusCode(event.records[0], t[st].targetFieldText);
             t[st].fieldText = changeStatusCode(event.records[0], t[st].fieldText);
@@ -209,16 +227,15 @@ jQuery.noConflict();
 
         //文字条件書式
         for (var ti2 = 0; ti2 < t.length; ti2++) {
+            //各行のターゲットフィールドの要素を取得する
             var el_text2 = kintone.app.getFieldElements(t[ti2].targetFieldText);
             if (!el_text2) {
+                console.error("not found targetFieldText : " + t[ti2].targetFieldText);
                 continue;
             }
             for (var tn = 0; tn < el_text2.length; tn++) {
                 record = event.records[tn];
                 var text2_value = record[t[ti2].fieldText]["value"];
-                if (t[ti2].fieldText === "status") {
-                    text2_value = record[changeStatusCode(t[ti2].fieldText)]["value"];
-                }
                 //チェックボックス、複数選択の判別
                 if (Array.isArray(text2_value)) {
                     for (var a = 0; a < text2_value.length; a++) {
@@ -226,6 +243,7 @@ jQuery.noConflict();
                             //書式変更
                             changeStyle(el_text2[tn], t[ti2].targetColorText,
                             t[ti2].targetBackgroundColorText, t[ti2].targetSizeText);
+                            changeDisplay(el_text2[tn], t[ti2].targetDisabled, t[ti2].targetHidden);
                             break;
                         }
                     }
@@ -233,12 +251,15 @@ jQuery.noConflict();
                     //書式変更
                     changeStyle(el_text2[tn], t[ti2].targetColorText,
                     t[ti2].targetBackgroundColorText, t[ti2].targetSizeText);
+                    changeDisplay(el_text2[tn], t[ti2].targetDisabled, t[ti2].targetHidden);
+
                 }
             }
         }
 
         //日付条件書式
         for (var di2 = 0; di2 < d.length; di2++) {
+            //各行のターゲットフィールドの要素を取得する
             var el_date2 = kintone.app.getFieldElements(d[di2].targetFieldDate);
             if (!el_date2) {
                 continue;
@@ -250,6 +271,7 @@ jQuery.noConflict();
                     //書式変更
                     changeStyle(el_date2[dn], d[di2].targetColorDate,
                     d[di2].targetBackgroundColorDate, d[di2].targetSizeDate);
+                    changeDisplay(el_date2[dn], d[di2].targetDisabled, d[di2].targetHidden);
                 }
             }
         }
@@ -259,15 +281,21 @@ jQuery.noConflict();
         var record = event.record;
         var t = [];
         var d = [];
-        for (var m = 1; m < MAX_LINE + 1; m++) {
-            if (BODY_TEXT["cfield_text_" + m]["value"] !== "") {
-                t.push(getTextFormatValues(m));
-            }
-            if (BODY_DATE["cfield_date_" + m]["value"] !== "") {
-                d.push(getDateFormatValues(m));
+
+        for(var i = 0; i < BODY_TEXT.length; i++){
+            var tRow = BODY_TEXT[i];
+            if (tRow["cfield_text"]["value"] !== "") {
+                t.push(getTextFormatValues(tRow));
             }
         }
-        //ステータスコードチェック
+        for(var i = 0; i < BODY_DATE.length; i++){
+            var dRow = BODY_DATE[i];
+            if (dRow["cfield_date"]["value"] !== "") {
+                d.push(getDateFormatValues(dRow));
+            }
+        }
+
+        //ステータスフィールドのフィールドコードを改めて取得し直す
         for (var st = 0; st < t.length; st++) {
             t[st].targetFieldText = changeStatusCode(event.record, t[st].targetFieldText);
             t[st].fieldText = changeStatusCode(event.record, t[st].fieldText);
@@ -289,12 +317,14 @@ jQuery.noConflict();
                         //書式変更
                         changeStyle(el_text, t[ti].targetColorText,
                         t[ti].targetBackgroundColorText, t[ti].targetSizeText);
+                        changeDisplay(el_text, t[ti].targetDisabled, t[ti].targetHidden);
                         break;
                     }
                 }
             } else if (checkTextFormat(text_value, t[ti].valueText, t[ti].typeText)) {
                 //書式変更
                 changeStyle(el_text, t[ti].targetColorText, t[ti].targetBackgroundColorText, t[ti].targetSizeText);
+                changeDisplay(el_text, t[ti].targetDisabled, t[ti].targetHidden);
             }
         }
 
@@ -307,6 +337,7 @@ jQuery.noConflict();
                     continue;
                 }
                 changeStyle(el_date, d[di].targetColorDate, d[di].targetBackgroundColorDate, d[di].targetSizeDate);
+                changeDisplay(el_date, d[di].targetDisabled, d[di].targetHidden);
             }
         }
     }
