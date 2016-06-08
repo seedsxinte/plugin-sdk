@@ -29,6 +29,11 @@ jQuery.noConflict();
       "app.record.create.show",
       "app.record.edit.show"
     ];
+    var SUBMIT_EVENT_TARGETS = [
+      "app.record.index.edit.submit",
+      "app.record.edit.submit",
+      "app.record.create.submit"
+    ];
 
 
     function changeStyle(el, color, backgroundcolor, size) {
@@ -208,9 +213,9 @@ jQuery.noConflict();
             targetColorDate: dRow["tcolor_date"]["value"],//文字色
             targetBackgroundColorDate: dRow["tbgcolor_date"]["value"],//背景色
             targetSizeDate: dRow["tsize_date"]["value"],//サイズ
-            targetRequired: tRow["trequired"]["value"],//必須
-            targetDisabled: tRow["tdisabled"]["value"],//変更不可
-            targetHidden: tRow["thidden"]["value"]//非表示
+            targetRequired: dRow["trequired"]["value"],//必須
+            targetDisabled: dRow["tdisabled"]["value"],//変更不可
+            targetHidden: dRow["thidden"]["value"]//非表示
         };
     }
 
@@ -275,7 +280,7 @@ jQuery.noConflict();
       }
       //日付型条件
       for (var i = 0; i < DATE_COND.length; i++){
-        kintone.events.on(createFieldModifiedEvents(dcond.fieldDate), function(dcond, event){
+        kintone.events.on(createFieldModifiedEvents(DATE_COND[i].fieldDate), function(dcond, event){
             var record = event.record;
             var matched = checkDateFormat(record[dcond.fieldDate]["value"],
               dcond.valueDate, dcond.typeDate);
@@ -340,6 +345,41 @@ jQuery.noConflict();
         }
 
     }
+
+    //登録時のレコードの値チェック
+    ////必須入力チェック
+    function validate(event){
+      var record = event.record;
+      var ret = true;
+      //書式条件式
+      for (var ti = 0; ti < TEXT_COND.length; ti++) {
+          var tcond = TEXT_COND[ti];
+          if (!tcond.targetRequired ||
+            !checkTextFormat(record[tcond.fieldText]["value"],
+            tcond.valueText, tcond.typeText)) {
+              continue;
+          }
+          if(!record[tcond.targetFieldText]["value"]){
+            record[tcond.targetFieldText].error = "必須項目です";
+            ret = false;
+          }
+      }
+
+      //日付条件書式
+      for (var di = 0; di < DATE_COND.length; di++) {
+          var dcond = DATE_COND[di];
+          if (!dcond.targetRequired ||
+            !checkDateFormat(record[dcond.fieldDate]["value"],
+            dcond.valueDate, dcond.typeDate)) {
+              continue;
+          }
+          if(!record[dcond.targetFieldDate]["value"]){
+            record[dcond.targetFieldText].error = "必須項目です";
+            ret = false;
+          }
+      }
+      return ret;
+    }
     //レコード表示イベント
     kintone.events.on(SHOW_EVENT_TARGETS, function(event) {
         init(event.record);
@@ -353,5 +393,10 @@ jQuery.noConflict();
         initOnChange();
         return event;
     });
-
+    //レコード登録イベント
+    kintone.events.on(SUBMIT_EVENT_TARGETS, function(event){
+        //入力不備があった場合フィールドにerrorが登録され登録処理は行われない
+        validate(event);
+        return event;
+    });
 })(jQuery, kintone.$PLUGIN_ID);
