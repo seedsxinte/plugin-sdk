@@ -17,8 +17,19 @@ jQuery.noConflict();
         return false;
     }
 
-    var BODY_TEXT = JSON.parse(CONFIG["body_text"]);
-    var BODY_DATE = JSON.parse(CONFIG["body_date"]);
+    //init処理で初期化される
+    var TEXT_COND = [];
+    var DATE_COND = [];
+
+    var SHOW_EVENT_TARGETS = [
+      // "app.record.index.show", //一覧だと列全体が書式・表示変更対象となってしまうので一旦除く
+      "app.record.detail.show"
+    ];
+    var EDIT_EVENT_TARGETS = [
+      "app.record.create.show",
+      "app.record.edit.show"
+    ];
+
 
     function changeStyle(el, color, backgroundcolor, size) {
         if (el) {
@@ -36,15 +47,21 @@ jQuery.noConflict();
         }
     }
 
-    function changeDisplay(el, disabled, hidden) {
-        if (el) {
-            $(el).prop("disabled", disabled);
-            hidden ? $(el).hide() : $(el).show();
-        }
-    }
 
     //条件チェック
-    function checkTextFormat(field, value, type) {
+    function checkTextFormat(checked, value, type){
+          if (!Array.isArray(checked)){
+            checked = [checked];
+          }
+          for (var a = 0; a < checked.length; a++) {
+              var ret = _checkTextFormat(checked[a], value, type);
+              if(ret){
+                return true;
+              }
+          }
+          return false;
+    }
+    function _checkTextFormat(field, value, type) {
         var field_text = "";
         var value_text = "";
 
@@ -197,159 +214,144 @@ jQuery.noConflict();
         };
     }
 
-    //レコード一覧画面 条件チェック及び書式変更
-    function setIndexFormat(event) {
-        var record = [];
-        var t = [];
-        var d = [];
+    //初期化
+    //ステータス項目（プロセス管理をする場合に存在する特殊な項目）のフィールドコードを取得するためにrecordが必要
+    function init(record){
+        var BODY_TEXT = JSON.parse(CONFIG["body_text"]);
+        var BODY_DATE = JSON.parse(CONFIG["body_date"]);
 
         for(var i = 0; i < BODY_TEXT.length; i++){
             var tRow = BODY_TEXT[i];
             if (tRow["cfield_text"]["value"] !== "") {
-                t.push(getTextFormatValues(tRow));
+                TEXT_COND.push(getTextFormatValues(tRow));
             }
         }
         for(var i = 0; i < BODY_DATE.length; i++){
             var dRow = BODY_DATE[i];
             if (dRow["cfield_date"]["value"] !== "") {
-                d.push(getDateFormatValues(dRow));
+                DATE_COND.push(getDateFormatValues(dRow));
             }
         }
 
         //ステータスフィールドのフィールドコードを改めて取得し直す
-        for (var st = 0; st < t.length; st++) {
-            t[st].targetFieldText = changeStatusCode(event.records[0], t[st].targetFieldText);
-            t[st].fieldText = changeStatusCode(event.records[0], t[st].fieldText);
+        for (var st = 0; st < TEXT_COND.length; st++) {
+            TEXT_COND[st].targetFieldText = changeStatusCode(record, TEXT_COND[st].targetFieldText);
+            TEXT_COND[st].fieldText = changeStatusCode(record, TEXT_COND[st].fieldText);
         }
-        for (var sd = 0; sd < d.length; sd++) {
-            d[sd].targetFieldDate = changeStatusCode(event.records[0], d[sd].targetFieldDate);
-        }
-
-        //文字条件書式
-        for (var ti2 = 0; ti2 < t.length; ti2++) {
-            //各行のターゲットフィールドの要素を取得する
-            var el_text2 = kintone.app.getFieldElements(t[ti2].targetFieldText);
-            if (!el_text2) {
-                console.error("not found targetFieldText : " + t[ti2].targetFieldText);
-                continue;
-            }
-            for (var tn = 0; tn < el_text2.length; tn++) {
-                record = event.records[tn];
-                var text2_value = record[t[ti2].fieldText]["value"];
-                //チェックボックス、複数選択の判別
-                if (Array.isArray(text2_value)) {
-                    for (var a = 0; a < text2_value.length; a++) {
-                        if (checkTextFormat(text2_value[a], t[ti2].valueText, t[ti2].typeText)) {
-                            //書式変更
-                            changeStyle(el_text2[tn], t[ti2].targetColorText,
-                            t[ti2].targetBackgroundColorText, t[ti2].targetSizeText);
-                            changeDisplay(el_text2[tn], t[ti2].targetDisabled, t[ti2].targetHidden);
-                            break;
-                        }
-                    }
-                } else if (checkTextFormat(text2_value, t[ti2].valueText, t[ti2].typeText)) {
-                    //書式変更
-                    changeStyle(el_text2[tn], t[ti2].targetColorText,
-                    t[ti2].targetBackgroundColorText, t[ti2].targetSizeText);
-                    changeDisplay(el_text2[tn], t[ti2].targetDisabled, t[ti2].targetHidden);
-
-                }
-            }
-        }
-
-        //日付条件書式
-        for (var di2 = 0; di2 < d.length; di2++) {
-            //各行のターゲットフィールドの要素を取得する
-            var el_date2 = kintone.app.getFieldElements(d[di2].targetFieldDate);
-            if (!el_date2) {
-                continue;
-            }
-            for (var dn = 0; dn < el_date2.length; dn++) {
-                record = event.records[dn];
-                if (checkDateFormat(record[d[di2].fieldDate]["value"],
-                    d[di2].valueDate, d[di2].typeDate)) {
-                    //書式変更
-                    changeStyle(el_date2[dn], d[di2].targetColorDate,
-                    d[di2].targetBackgroundColorDate, d[di2].targetSizeDate);
-                    changeDisplay(el_date2[dn], d[di2].targetDisabled, d[di2].targetHidden);
-                }
-            }
+        for (var sd = 0; sd < DATE_COND.length; sd++) {
+            DATE_COND[sd].targetFieldDate = changeStatusCode(record, DATE_COND[sd].targetFieldDate);
+            DATE_COND[sd].fieldDATE = changeStatusCode(record, DATE_COND[sd].fieldDate);
         }
     }
+
+    function initOnChange(){
+      var TEMP_MODIFIED_EVENTS = [
+        "app.record.create.change.",
+        "app.record.edit.change.",
+        "app.record.index.edit.change."
+      ];
+      function createFieldModifiedEvents(fieldcode){
+        var ret = [];
+        for (var i = 0; i < TEMP_MODIFIED_EVENTS.length; i++){
+            ret.push(TEMP_MODIFIED_EVENTS[i] + fieldcode);
+        }
+        return ret;
+      }
+      //フィールド変更イベント
+      //書式条件
+      for (var i = 0; i < TEXT_COND.length; i++){
+        kintone.events.on(createFieldModifiedEvents(TEXT_COND[i].fieldText), function(tcond, event){
+            var record = event.record;
+            var matched = checkTextFormat(record[tcond.fieldText]["value"],
+              tcond.valueText, tcond.typeText);
+            if(tcond.targetDisabled){
+                record[tcond.targetFieldText]["disabled"] = matched;
+            }
+            if(tcond.targetHidden){
+                kintone.app.record.setFieldShown(tcond.targetFieldText, !matched);
+            }
+            return event;
+        }.bind(null, $.extend(true, {}, TEXT_COND[i])));
+      }
+      //日付型条件
+      for (var i = 0; i < DATE_COND.length; i++){
+        kintone.events.on(createFieldModifiedEvents(dcond.fieldDate), function(dcond, event){
+            var record = event.record;
+            var matched = checkDateFormat(record[dcond.fieldDate]["value"],
+              dcond.valueDate, dcond.typeDate);
+            if(dcond.targetDisabled){
+                record[dcond.targetFieldDate]["disabled"] = matched;
+            }
+            if(dcond.targetHidden){
+                kintone.app.record.setFieldShown(dcond.targetFieldDate, !matched);
+            }
+            return event;
+        }.bind(null, $.extend(true, {}, DATE_COND[i])));
+      }
+    }
+
     //レコード詳細画面 条件チェック及び書式変更
-    function setDetailFormat(event) {
-        var record = event.record;
-        var t = [];
-        var d = [];
-
-        for(var i = 0; i < BODY_TEXT.length; i++){
-            var tRow = BODY_TEXT[i];
-            if (tRow["cfield_text"]["value"] !== "") {
-                t.push(getTextFormatValues(tRow));
-            }
-        }
-        for(var i = 0; i < BODY_DATE.length; i++){
-            var dRow = BODY_DATE[i];
-            if (dRow["cfield_date"]["value"] !== "") {
-                d.push(getDateFormatValues(dRow));
-            }
-        }
-
-        //ステータスフィールドのフィールドコードを改めて取得し直す
-        for (var st = 0; st < t.length; st++) {
-            t[st].targetFieldText = changeStatusCode(event.record, t[st].targetFieldText);
-            t[st].fieldText = changeStatusCode(event.record, t[st].fieldText);
-        }
-        for (var sd = 0; sd < d.length; sd++) {
-            d[sd].targetFieldDate = changeStatusCode(event.record, d[sd].targetFieldDate);
-        }
-
+    function initOnShow(event_type, record) {
         //文字条件書式
-        for (var ti = 0; ti < t.length; ti++) {
-            var el_text = kintone.app.record.getFieldElement(t[ti].targetFieldText);
-            if (!el_text) {
+        for (var ti = 0; ti < TEXT_COND.length; ti++) {
+            var tcond = TEXT_COND[ti];
+            if (!checkTextFormat(record[tcond.fieldText]["value"],
+              tcond.valueText, tcond.typeText)) {
                 continue;
             }
-            var text_value = record[t[ti].fieldText]["value"];
-            if (Array.isArray(text_value)) {
-                for (var a = 0; a < text_value.length; a++) {
-                    if (checkTextFormat(text_value[a], t[ti].valueText, t[ti].typeText)) {
-                        //書式変更
-                        changeStyle(el_text, t[ti].targetColorText,
-                        t[ti].targetBackgroundColorText, t[ti].targetSizeText);
-                        changeDisplay(el_text, t[ti].targetDisabled, t[ti].targetHidden);
-                        break;
-                    }
-                }
-            } else if (checkTextFormat(text_value, t[ti].valueText, t[ti].typeText)) {
-                //書式変更
-                changeStyle(el_text, t[ti].targetColorText, t[ti].targetBackgroundColorText, t[ti].targetSizeText);
-                changeDisplay(el_text, t[ti].targetDisabled, t[ti].targetHidden);
+            //書式変更
+            if($.inArray(event_type, SHOW_EVENT_TARGETS) != -1){
+              var el_text2 = kintone.app.record.getFieldElement(tcond.targetFieldText);
+              if (!el_text2) {
+                  console.error("not found targetFieldText : " + tcond.targetFieldText);
+                  continue;
+              }
+              changeStyle(el_text2, tcond.targetColorText,
+                tcond.targetBackgroundColorText, tcond.targetSizeText);
+            }
+            //表示変更
+            kintone.app.record.setFieldShown(tcond.targetFieldText, !tcond.targetHidden);
+            if($.inArray(event_type, EDIT_EVENT_TARGETS) != -1){
+                record[tcond.targetFieldText]["disabled"] = tcond.targetDisabled;
             }
         }
-
         //日付条件書式
-        for (var di = 0; di < d.length; di++) {
-            if (checkDateFormat(record[d[di].fieldDate]["value"], d[di].valueDate, d[di].typeDate)) {
-                //書式変更
-                var el_date = kintone.app.record.getFieldElement(d[di].targetFieldDate);
-                if (!el_date) {
-                    continue;
-                }
-                changeStyle(el_date, d[di].targetColorDate, d[di].targetBackgroundColorDate, d[di].targetSizeDate);
-                changeDisplay(el_date, d[di].targetDisabled, d[di].targetHidden);
+        for (var di = 0; di < DATE_COND.length; di++) {
+            var dcond = DATE_COND[di];
+            if (!checkDateFormat(record[dcond.fieldDate]["value"],
+              dcond.valueDate, dcond.typeDate)) {
+                continue;
+            }
+            //書式変更
+            if($.inArray(event_type, SHOW_EVENT_TARGETS) != -1){
+              var el_date2 = kintone.app.record.getFieldElement(dcond.targetFieldDate);
+              if (!el_date2) {
+                  console.error("not found targetFieldDext : " + dcond.targetFieldDate);
+                  continue;
+              }
+              changeStyle(el_date2, dcond.targetColorDate,
+                dcond.targetBackgroundColorDate, dcond.targetSizeDate);
+            }
+            //表示変更
+            kintone.app.record.setFieldShown(dcond.targetFieldDate, !dcond.targetHidden);
+            if($.inArray(event_type, EDIT_EVENT_TARGETS) != -1){
+                record[dcond.targetFieldText]["disabled"] = dcond.targetDisabled;
             }
         }
-    }
 
-    //レコード一覧表示イベント
-    kintone.events.on("app.record.index.show", function(event) {
-        setIndexFormat(event);
+    }
+    //レコード表示イベント
+    kintone.events.on(SHOW_EVENT_TARGETS, function(event) {
+        init(event.record);
+        initOnShow(event.type, event.record);
         return event;
     });
-    //レコード詳細表示イベント
-    kintone.events.on("app.record.detail.show", function(event) {
-        setDetailFormat(event);
+    //レコード編集イベント
+    kintone.events.on(EDIT_EVENT_TARGETS, function(event) {
+        init(event.record);
+        initOnShow(event.type, event.record);
+        initOnChange();
         return event;
     });
+
 })(jQuery, kintone.$PLUGIN_ID);
